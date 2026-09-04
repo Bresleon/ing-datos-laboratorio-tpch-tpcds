@@ -1,11 +1,5 @@
 # Laboratorio de Benchmarking Analítico: TPC-H vs TPC-DS
 
-![Docker](https://shields.io)
-![PostgreSQL](https://shields.io)
-![Python](https://shields.io)
-![Conda](https://shields.io)
-![License](https://shields.io)
-
 Este proyecto implementa, automatiza y compara los benchmarks estándar de la industria **TPC-H** (procesamiento analítico relacional / ad-hoc) y **TPC-DS** (toma de decisiones en esquemas complejos de Data Warehouse) utilizando **Conda**, **Docker**, **Docker Compose**, **PostgreSQL 15** y **pgAdmin 4**.
 
 ## 1. Arquitectura y Estructura del Proyecto
@@ -69,7 +63,7 @@ Para garantizar la reproducibilidad de las librerías analíticas (`psycopg2`, `
 conda env create -f environment.yml
 
 # Activar el entorno
-conda activate tpch_benchmark
+conda activate tpc_env
 ```
 
 *(Si en el futuro modificas dependencias en `environment.yml`, puedes sincronizarlo ejecutando `conda env update -f environment.yml --prune`).*
