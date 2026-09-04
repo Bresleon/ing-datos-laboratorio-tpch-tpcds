@@ -1,0 +1,23 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "TPC-H (PostgreSQL)",
+      "Group": "Benchmarks",
+      "Host": "tpch_server",
+      "Port": 5432,
+      "MaintenanceDB": "tpch",
+      "Username": "postgres",
+      "SSLMode": "prefer"
+    },
+    "2": {
+      "Name": "TPC-DS (PostgreSQL)",
+      "Group": "Benchmarks",
+      "Host": "tpcds_server",
+      "Port": 5432,
+      "MaintenanceDB": "tpcds",
+      "Username": "postgres",
+      "SSLMode": "prefer"
+    }
+  }
+}
+

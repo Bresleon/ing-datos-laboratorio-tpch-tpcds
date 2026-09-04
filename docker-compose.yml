@@ -1,0 +1,52 @@
+services:
+  tpch_service:
+    build:
+      context: ./tpch
+      dockerfile: Dockerfile
+    container_name: tpch_server
+    environment:
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: tpch
+    ports:
+      - "5432:5432"
+    volumes:
+      - tpch_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  tpcds_service:
+    build:
+      context: ./tpcds
+      dockerfile: Dockerfile
+    container_name: tpcds_server
+    environment:
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: tpcds
+    shm_size: '1gb'
+    ports:
+      - "5433:5432"
+    volumes:
+      - tpcds_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  pgadmin_service:
+    image: dpage/pgadmin4:latest
+    container_name: tpch_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: password123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "8080:80"
+    volumes:
+      - ./servers.json:/pgadmin4/servers.json:ro
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - tpch_service
+      - tpcds_service
+    restart: unless-stopped
+
+volumes:
+  tpch_pgdata:
+  tpcds_pgdata:
+  pgadmin_data:
+

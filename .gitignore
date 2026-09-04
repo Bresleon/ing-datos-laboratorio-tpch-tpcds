@@ -1,0 +1,79 @@
+# ==========================================
+# Entornos virtuales y paquetes de Python
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+ENV/
+.conda/
+
+# ==========================================
+# Artefactos de compilación C / Make
+# ==========================================
+*.o
+*.obj
+*.so
+*.dylib
+*.a
+*.out
+*.app
+
+# Ejecutables nativos de las suites TPC
+/tpch/tpch-kit/dbgen/dbgen
+/tpch/tpch-kit/dbgen/qgen
+/tpcds/tpcds-kit/tools/dsdgen
+/tpcds/tpcds-kit/tools/dsqgen
+
+# ==========================================
+# Datasets y volcados de datos temporales
+# (Los datos se generan dentro de Docker)
+# ==========================================
+*.tbl
+*.dat
+*.csv.tmp
+
+# ==========================================
+# Datos locales y persistencia de Docker
+# ==========================================
+.docker/
+pgdata/
+tpch_pgdata/
+tpcds_pgdata/
+pgadmin_data/
+
+# ==========================================
+# Configuración de editores e IDEs
+# ==========================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# ==========================================
+# Archivos del sistema operativo
+# ==========================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# ==========================================
+# Logs y volcados de ejecución
+# ==========================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+
+# Carpetas de datos pesados de referencia de los kits
+ref_data/
+answer_sets/
+*.ans
+git_report.txt
+*.txt
