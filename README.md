@@ -1,5 +1,11 @@
 # Laboratorio de Benchmarking Analítico: TPC-H vs TPC-DS
 
+![Docker](https://shields.io)
+![PostgreSQL](https://shields.io)
+![Python](https://shields.io)
+![Conda](https://shields.io)
+![License](https://shields.io)
+
 Este proyecto implementa, automatiza y compara los benchmarks estándar de la industria **TPC-H** (procesamiento analítico relacional / ad-hoc) y **TPC-DS** (toma de decisiones en esquemas complejos de Data Warehouse) utilizando **Conda**, **Docker**, **Docker Compose**, **PostgreSQL 15** y **pgAdmin 4**.
 
 ## 1. Arquitectura y Estructura del Proyecto
@@ -12,6 +18,8 @@ La solución utiliza una arquitectura basada en contenedores orquestados con com
 ```text
 ingenieria_datos/
 ├── docker-compose.yml              # Orquestador de servicios (TPC-H, TPC-DS, pgAdmin)
+├── environment.yml                 # Definición del entorno Conda para reproducibilidad
+├── LICENSE                         # Licencia de código abierto
 ├── servers.json                    # Configuración de precarga de servidores para pgAdmin
 ├── ejecutar_todo.py                # Script maestro de ejecución global y consolidación
 ├── README.md                       # Documentación técnica del laboratorio
@@ -37,7 +45,7 @@ ingenieria_datos/
 
 * Docker Engine y Docker Compose V2
 * Gestor de entornos Conda (Miniconda o Anaconda)
-* Python 3.10+
+* Git
 
 ## 3. Despliegue de la Infraestructura
 
@@ -54,12 +62,17 @@ docker compose up -d --build
 
 ## 4. Configuración del Entorno en Conda
 
-En la máquina local, crea y activa el entorno de análisis para ejecutar los scripts de métricas:
+Para garantizar la reproducibilidad de las librerías analíticas (`psycopg2`, `pandas`, `matplotlib`), crea y activa el entorno directamente desde el archivo `environment.yml` ubicado en la raíz del proyecto:
 
 ```bash
-conda create -n tpch_benchmark python=3.11 psycopg2 pandas matplotlib -y
+# Crear el entorno a partir de la especificación
+conda env create -f environment.yml
+
+# Activar el entorno
 conda activate tpch_benchmark
 ```
+
+*(Si en el futuro modificas dependencias en `environment.yml`, puedes sincronizarlo ejecutando `conda env update -f environment.yml --prune`).*
 
 ## 5. Ejecución de los Benchmarks
 
