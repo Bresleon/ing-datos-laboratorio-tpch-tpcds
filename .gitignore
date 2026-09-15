@@ -77,3 +77,5 @@ answer_sets/
 *.ans
 git_report.txt
 *.txt
+*.duckdb
+*.duckdb.wal
