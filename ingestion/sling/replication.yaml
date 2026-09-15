@@ -1,0 +1,30 @@
+source: TPCH
+target: DUCK_DW
+
+defaults:
+  mode: full-refresh
+
+streams:
+  public.region:
+    object: main.region
+
+  public.nation:
+    object: main.nation
+
+  public.supplier:
+    object: main.supplier
+
+  public.part:
+    object: main.part
+
+  public.customer:
+    object: main.customer
+
+  public.orders:
+    object: main.orders
+    mode: incremental
+    primary_key: [o_orderkey]
+    update_key: o_orderdate
+
+  public.lineitem:
+    object: main.lineitem
