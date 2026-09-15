@@ -19,6 +19,9 @@ ingenieria_datos/
 ├── README.md                       # Documentación técnica del laboratorio
 ├── tiempos_consolidados.csv        # Dataset combinado de tiempos de ejecución
 ├── comparativa_tpch_vs_tpcds.png   # Gráfica comparativa consolidada
+├── ingestion/
+│   └── sling/
+│       └── replication.yaml        # Configuración declarativa del pipeline EL (Postgres -> DuckDB)
 ├── tpch/
 │   ├── Dockerfile                  # Build multistage DBGen + PostgreSQL
 │   ├── medir_tpch.py               # Automatización y métricas de TPC-H
@@ -40,6 +43,7 @@ ingenieria_datos/
 * Docker Engine y Docker Compose V2
 * Gestor de entornos Conda (Miniconda o Anaconda)
 * Git
+* Sling CLI (`pip install sling` o binario nativo)
 
 ## 3. Despliegue de la Infraestructura
 
@@ -124,3 +128,124 @@ Si deseas evaluar cada motor por separado:
   docker compose down -v
   ```
 
+## 8. Ingestión y Replicación EL: PostgreSQL a DuckDB con Sling
+
+Además de la generación y benchmarking de datos en PostgreSQL, el proyecto incorpora una capa de Extract & Load (EL) hacia un motor analítico columnar embebido (DuckDB) utilizando Sling CLI.
+
+### 8.1. Configuración de Conexiones
+
+En `~/.sling/env.yaml` se definen las conexiones de origen y destino:
+
+```yaml
+connections:
+  TPCH:
+    type: postgres
+    host: localhost
+    port: 5432
+    database: tpch
+    user: postgres
+    password: password123
+  DUCK_DW:
+    type: duckdb
+    instance: /home/{nombre_usuario}/tpch_dw.duckdb
+```
+
+Nota sobre SSL en Docker: Dado que PostgreSQL corre en un contenedor local sin soporte SSL habilitado, se desactiva la negociación forzada del driver configurando la variable de entorno:
+
+```bash
+export PGSSLMODE=disable
+```
+
+### 8.2. Definición del Pipeline Declarativo (`ingestion/sling/replication.yaml`)
+
+El pipeline replica tanto tablas dimensionales como de hechos, combinando estrategias de Full Refresh e Incremental:
+
+```yaml
+source: TPCH
+target: DUCK_DW
+
+defaults:
+  mode: full-refresh
+
+streams:
+  public.region:
+    object: main.region
+  public.nation:
+    object: main.nation
+  public.supplier:
+    object: main.supplier
+  public.part:
+    object: main.part
+  public.customer:
+    object: main.customer
+  public.orders:
+    object: main.orders
+    mode: incremental
+    primary_key: [o_orderkey]
+    update_key: o_orderdate
+  public.lineitem:
+    object: main.lineitem
+```
+
+### 8.3. Ejecución del Pipeline
+
+Para ejecutar la sincronización completa:
+
+```bash
+sling run -r ingestion/sling/replication.yaml
+```
+
+## 9. Métricas de Replicación y Validación Analítica
+
+### 9.1. Rendimiento de Ingestión
+
+Durante la replicación inicial de 7 streams, se migraron 786.602 registros en 30 segundos sin fallas:
+
+| Stream | Registros | Tamaño | Tiempo | Rendimiento |
+| --- | --- | --- | --- | --- |
+| public.region | 5 | 475 B | 1 s | 4 r/s |
+| public.nation | 25 | 2.6 kB | 1 s | 20 r/s |
+| public.supplier | 1.000 | 146 kB | 1 s | 723 r/s |
+| public.part | 20.000 | 2.7 MB | 1 s | 11.658 r/s |
+| public.customer | 15.000 | 2.4 MB | 1 s | 9.340 r/s |
+| public.orders | 150.000 | 18.0 MB | 4 s | 35.808 r/s |
+| public.lineitem | 600.572 | 87.0 MB | 16 s | 36.674 r/s |
+| Total Pipeline | 786.602 | ~110.2 MB | 30 s | ~26.220 r/s (global) |
+
+### 9.2. Validación Analítica en DuckDB
+
+Para verificar la consistencia e integridad referencial post-replicación, se ejecuta una consulta agregada multidimensional sobre DuckDB:
+
+```python
+import duckdb
+
+con = duckdb.connect("/home/{nombre_usuario}/tpch_dw.duckdb")
+
+query = """
+    SELECT 
+        n.n_name AS pais,
+        COUNT(o.o_orderkey) AS total_pedidos,
+        ROUND(SUM(o.o_totalprice), 2) AS facturacion_total
+    FROM main.customer c
+    JOIN main.orders o ON c.c_custkey = o.o_custkey
+    JOIN main.nation n ON c.c_nationkey = n.n_nationkey
+    GROUP BY n.n_name
+    ORDER BY facturacion_total DESC
+    LIMIT 5;
+"""
+
+print(con.execute(query).df())
+```
+
+Resultado obtenido:
+
+```
+        pais  total_pedidos  facturacion_total
+0       IRAN           6568       9.462088e+08
+1  INDONESIA           6445       9.161848e+08
+2   ETHIOPIA           6333       9.028494e+08
+3    MOROCCO           6300       8.931228e+08
+4      CHINA           6141       8.819649e+08
+```
+
+La coherencia de los totales y la resolución sin nulos de los JOIN confirman la preservación de las relaciones dimensionales entre PostgreSQL y DuckDB.
