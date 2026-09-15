@@ -1,0 +1,4 @@
+name: "Local Storage (JSON)"
+destinationDefinitionId: "a670ac7c-659a-4775-92b4-596919717208"
+connectionConfiguration:
+  destination_path: "/local"

@@ -1,0 +1,14 @@
+name: "Postgres TPC-H"
+sourceDefinitionId: "decd338e-5647-4c0b-adf4-da0e75f5a750"
+connectionConfiguration:
+  host: "172.17.0.1"
+  port: 5432
+  database: "tpch"
+  username: "postgres"
+  password: "password123"
+  schemas:
+    - "public"
+  ssl_mode:
+    mode: "disable"
+  replication_method:
+    method: "Standard"
