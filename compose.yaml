@@ -1,0 +1,98 @@
+networks:
+  monitoring_net:
+    driver: bridge
+
+volumes:
+  tpch_pgdata:
+  prometheus_data:
+  grafana_data:
+
+services:
+  postgres:
+    build:
+      context: ./tpch
+      dockerfile: Dockerfile
+    container_name: postgres-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tpch
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123
+    # Aplicación de los parámetros de tuning y CDC requeridos en el arranque
+    command: >
+      postgres
+      -c shared_buffers=2GB
+      -c effective_cache_size=6GB
+      -c work_mem=32MB
+      -c maintenance_work_mem=1GB
+      -c max_wal_size=4GB
+      -c random_page_cost=1.1
+      -c seq_page_cost=1.0
+      -c max_worker_processes=8
+      -c max_parallel_workers=8
+      -c wal_level=logical
+      -c max_wal_senders=10
+      -c max_replication_slots=10
+    ports:
+      - "5432:5432"
+    volumes:
+      - tpch_pgdata:/var/lib/postgresql/data
+    networks:
+      - monitoring_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tpch"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: postgres-exporter
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:password123@postgres:5432/tpch?sslmode=disable"
+    ports:
+      - "9187:9187"
+    networks:
+      - monitoring_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+      - "--web.enable-lifecycle"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - monitoring_net
+    depends_on:
+      - postgres-exporter
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    networks:
+      - monitoring_net
+    depends_on:
+      - prometheus
