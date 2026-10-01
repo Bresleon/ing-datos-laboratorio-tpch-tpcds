@@ -1,0 +1,11 @@
+name: "Postgres DW Destination"
+destinationDefinitionId: "25c5221d-dce2-4163-ade9-739ef790f599" # Postgres Destination ID
+connectionConfiguration:
+  host: "172.17.0.1"
+  port: 5435
+  database: "dw_destination"
+  username: "postgres"
+  password: "password123"
+  schema: "public"
+  ssl_mode:
+    mode: "disable"
