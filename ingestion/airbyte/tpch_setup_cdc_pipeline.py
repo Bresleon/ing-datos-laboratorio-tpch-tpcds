@@ -91,5 +91,6 @@ if not conn:
     }, auth=AUTH).json()
 
 conn_id = conn["connectionId"]
-sync_job = requests.post(f"{BASE_URL}/connections/sync", json={"connectionId": conn_id}, auth=AUTH).json()
-print(f"Pipeline iniciado. Connection ID: {conn_id} | Job ID: {sync_job.get(job, {}).get(id)}")
+sync = requests.post(f'{BASE_URL}/connections/sync', json={'connectionId': conn_id}, auth=AUTH).json()
+job_id = sync.get("job", {}).get("id")
+print(f"Job de replicación disparado con éxito. Job ID: {job_id}")
