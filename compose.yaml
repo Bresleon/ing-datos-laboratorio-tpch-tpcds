@@ -5,6 +5,7 @@ networks:
 volumes:
   tpch_pgdata:
   tpcds_pgdata:
+  pgadmin_data:
   prometheus_data:
   grafana_data:
 
@@ -87,6 +88,28 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  # -------------------------------------------------------------
+  # PgAdmin (Puerto 8080)
+  # -------------------------------------------------------------
+  pgadmin_service:
+      image: dpage/pgadmin4:latest
+      container_name: tpc_pgadmin
+      environment:
+        PGADMIN_DEFAULT_EMAIL: admin@admin.com
+        PGADMIN_DEFAULT_PASSWORD: password123
+        PGADMIN_CONFIG_SERVER_MODE: 'False'
+      ports:
+        - "8080:80"
+      volumes:
+        - ./servers.json:/pgadmin4/servers.json:ro
+        - pgadmin_data:/var/lib/pgadmin
+      networks:
+        - monitoring_net
+      depends_on:
+        - tpch_postgres
+        - tpcds_postgres
+      restart: unless-stopped
 
   # -------------------------------------------------------------
   # Observabilidad (Exporter, Prometheus, Grafana)

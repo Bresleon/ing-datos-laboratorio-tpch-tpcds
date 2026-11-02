@@ -3,7 +3,7 @@
     "1": {
       "Name": "TPC-H (PostgreSQL)",
       "Group": "Benchmarks",
-      "Host": "tpch_server",
+      "Host": "tpch_postgres",
       "Port": 5432,
       "MaintenanceDB": "tpch",
       "Username": "postgres",
@@ -12,7 +12,7 @@
     "2": {
       "Name": "TPC-DS (PostgreSQL)",
       "Group": "Benchmarks",
-      "Host": "tpcds_server",
+      "Host": "tpcds_postgres",
       "Port": 5432,
       "MaintenanceDB": "tpcds",
       "Username": "postgres",
@@ -20,4 +20,3 @@
     }
   }
 }
-
